@@ -1,0 +1,204 @@
+---
+title: "Tugas Praktikum Minggu ke-5"
+author: "Desita Putri Kinanthi (G1401231077)"
+date: "2025-10-01"
+output: html_document
+---
+
+# Library
+
+```{r}
+library(readxl)
+library(ggplot2)
+library(tsibble)
+library(tseries)
+library(MASS)
+```
+
+# Full Data (1-100)
+
+```{r}
+dt <- read_excel("~/Downloads/Kel2_Data fix Proyek_VPdef.xls", 
+    sheet = "500", col_types = c("date", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric"))
+dt <- dt[201:300,c("date", "VPdef")]
+dt1 <- ts(dt$VPdef)
+```
+
+```{r}
+mean1 <- mean(dt1)
+mean1
+var(dt1)
+```
+
+## Pemeriksaan Kestasioneran
+
+### Plot *Time Series*
+
+```{r}
+plot1 <- dt1 |> as_tsibble() |> 
+  ggplot(aes(x = index, y = value)) + geom_line() + theme_bw() +
+  geom_hline(yintercept = mean1, color = "red", linetype = "dashed", size = 1) +
+  xlab("Obs") + ylab("VPdef")
+plot1
+```
+
+Plot deret waktu di atas menunjukkan bahwa data tidak stasioner dalam rataan, ditandai dengan pola trend yang fluktuatif dan tidak berada pada garis tengah mean (1.8073) serta tidak stasioner dalam ragam, ditandai dengan lebar pita yang berbeda.
+
+```{r}
+lattice::densityplot(as.vector(dt1))
+```
+
+### Plot ACF
+
+```{r}
+acf(dt1)
+```
+
+Berdasarkan plot ACF, terlihat bahwa plot ACF pada data tersebut menurun secara perlahan (*tails off slowly*) yang menandakan data tidak stasioner dalam rataan
+
+### Uji ADF
+
+```{r}
+tseries::adf.test(dt1)
+```
+
+$H_0$ : Data tidak stasioner dalam rataan
+
+$H_1$ : Data stasioner dalam rataan
+
+Berdasarkan uji ADF tersebut, nilai p didapat sebesar 0.1083 yang lebih besar dari taraf nyata 5% sehingga tak tolak $H_0$. Hal ini berarti bahwa data tidak stasioner dalam rataan, sesuai dengan hasil eksplorasi menggunakan plot time series dan plot ACF.
+
+### Plot Box-Cox
+
+```{r}
+index <- seq(1:100)
+bc = boxcox(dt1~index, lambda = seq(-2,2,by=0.01))
+#Nilai Rounded Lambda
+lambda <- bc$x[which.max(bc$y)]
+lambda
+#SK
+bc$x[bc$y > max(bc$y) - 1/2 * qchisq(.95,1)]
+```
+
+Gambar di atas menunjukkan nilai *rounded value* ($\lambda$) optimum sebesar **-0.71** dan pada selang kepercayaan 95% nilai memiliki batas bawah **-1.13** dan batas atas **-0.30**. Selang tersebut tidak memuat nilai satu sehingga data tidak stasioner dalam ragam.
+
+# Partisi 1 (1-50)
+
+```{r}
+dt2 <- dt$VPdef[1:50] |> ts()
+dt2
+(mean2 <- mean(dt2))
+var(dt2)
+```
+
+## Pemeriksaan Kestasioneran
+
+### Plot *Time Series*
+
+```{r}
+plot2 <- dt2 |> as_tsibble() |> 
+  ggplot(aes(x = index, y = value)) + geom_line() + theme_bw() +
+  geom_hline(yintercept = mean2, color = "red", linetype = "dashed", size = 1) +
+  xlab("Obs") + ylab("VPdef")
+plot2
+```
+
+### Plot ACF
+
+```{r}
+acf(dt2)
+```
+
+Berdasarkan plot ACF, terlihat bahwa plot ACF pada data tersebut menurun secara perlahan (*tails off slowly*) yang menandakan data tidak stasioner dalam rataan
+
+### Uji ADF
+
+```{r}
+tseries::adf.test(dt2)
+```
+
+$H_0$ : Data tidak stasioner dalam rataan
+
+$H_1$ : Data stasioner dalam rataan
+
+Berdasarkan uji ADF tersebut, nilai p didapat sebesar 0.9433 yang lebih besar dari taraf nyata 5% sehingga tak tolak $H_0$. Hal ini berarti bahwa data tidak stasioner dalam rataan, sesuai dengan hasil eksplorasi menggunakan plot time series dan plot ACF.
+
+### Plot Box-Cox
+
+```{r}
+index <- seq(1:50)
+bc = boxcox(dt2~index, lambda = seq(-4,4,by=0.01))
+#Nilai Rounded Lambda
+lambda <- bc$x[which.max(bc$y)]
+lambda
+#SK
+bc$x[bc$y > max(bc$y) - 1/2 * qchisq(.95,1)]
+```
+
+Gambar di atas menunjukkan nilai *rounded value* ($\lambda$) optimum sebesar **0.42** dan pada selang kepercayaan 95% nilai memiliki batas bawah **-0.11** dan batas atas **1.00**. Selang tersebut memuat nilai satu sehingga data stasioner dalam ragam.
+
+# Partisi 2 (51-100)
+
+```{r}
+dt3 <- dt$VPdef[51:100] |> ts()
+dt3
+(mean3 <- mean(dt3))
+var(dt3)
+```
+
+## Pemeriksaan Kestasioneran
+
+### Plot *Time Series*
+
+```{r}
+plot3 <- dt3 |> as_tsibble() |> 
+  ggplot(aes(x = index, y = value)) + geom_line() + theme_bw() +
+  geom_hline(yintercept = mean3, color = "red", linetype = "dashed", size = 1) +
+  xlab("Obs") + ylab("VPdef")
+plot3
+```
+
+### Plot ACF
+
+```{r}
+acf(dt3)
+```
+
+Berdasarkan plot ACF, terlihat bahwa plot ACF pada data tersebut menurun secara perlahan (*tails off slowly*) yang menandakan data tidak stasioner dalam rataan
+
+### Uji ADF
+
+```{r}
+tseries::adf.test(dt3)
+```
+
+$H_0$ : Data tidak stasioner dalam rataan
+
+$H_1$ : Data stasioner dalam rataan
+
+Berdasarkan uji ADF tersebut, nilai p didapat sebesar 0.028 yang lebih kecil dari taraf nyata 5% sehingga tolak $H_0$. Hal ini berarti bahwa data stasioner dalam rataan.
+
+### Plot Box-Cox
+
+```{r}
+index <- seq(51:100)
+bc = boxcox(dt3~index, lambda = seq(-6,0,by=0.01))
+#Nilai Rounded Lambda
+lambda <- bc$x[which.max(bc$y)]
+lambda
+#SK
+bc$x[bc$y > max(bc$y) - 1/2 * qchisq(.95,1)]
+```
+
+Gambar di atas menunjukkan nilai *rounded value* ($\lambda$) optimum sebesar **-4.04** dan pada selang kepercayaan 95% nilai memiliki batas bawah **-5.89** dan batas atas **-2.35**. Selang tersebut tidak memuat nilai satu sehingga data tidak stasioner dalam ragam.
+
+# Kesimpulan
+
+Data ini secara keseluruhan tidak stasioner dalam rataan dan ragam, namun terdapat periode-periode dengan kestasioneran parsial. Hal ini mengindikasikan adanya perubahan struktur atau volatilitas dalam data, sehingga pendekatan analisis sebaiknya mempertimbangkan transformasi atau model khusus yang dapat menangani non-stasioneritas.
